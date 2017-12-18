@@ -1,7 +1,10 @@
 #! /bin/bash
 clear
+
 MY_PATH=$(readlink -f $(dirname $0))
+
 echo "TOPCON setup"
+
 stty -F /dev/ttyUSB0 115200
 sleep 0.1
 
@@ -32,8 +35,6 @@ sleep 0.05
 echo -en "%%set,/par/mc/tp/kf/odom/use,on\r" > /dev/ttyUSB0
 sleep 0.05
 echo -en "%SCALE%print,/par/mc/tp/kf/odom/scale\r" > /dev/ttyUSB0
-sleep 0.05
-echo -en "#%%set,/par/mc/tp/kf/spoffs,{1.03,0.52,-1.82}\r" > /dev/ttyUSB0
 sleep 0.05
 echo -en "%spoffs%set,/par/mc/tp/kf/spoffs,{0.85,0.00,-1.35}\r" > /dev/ttyUSB0
 sleep 0.05
