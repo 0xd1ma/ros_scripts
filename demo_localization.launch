@@ -1,0 +1,16 @@
+<launch>
+  <param name="/use_sim_time" value="true" />
+
+  <include file="$(find superb_odometry)/launch/superb_odometry.launch" />
+
+  <include file="./robocar_ekf_localization.launch" />
+
+
+  <node name="rviz" pkg="rviz" type="rviz" required="true"/>
+
+  <node pkg="tf" type="static_transform_publisher" name="imu2base" args="1.420 0 0.3 0 0 0 /base_link /imu_link 100" />
+
+  <node name="playbag" pkg="rosbag" type="play"
+      args="--clock $(arg bag_filename)" />
+
+</launch>
