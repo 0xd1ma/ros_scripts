@@ -4,11 +4,11 @@
 <!-- For details: http://wiki.ros.org/nmea_navsat_driver-->
 <launch> 
 
-  <arg name="port" default="/dev/ttyUSB0"/>
-  <arg name="baud" default="9600" />
+  <arg name="port" default="/dev/topcon"/>
+  <arg name="baud" default="115200" />
  
   <!-- HOW TO RUN using rosrun:-->
-  <!-- rosrun nmea_navsat_driver nmea_topic_serial_driver _port:=/dev/ttyUSB0 _baud:=9600 -->
+  <!-- rosrun nmea_navsat_driver nmea_topic_serial_driver _port:=/dev/topcon _baud:=115200 -->
   <!-- rosrun nmea_navsat_driver nmea_topic_driver -->
 
   <!--read sentence and publish topic-->

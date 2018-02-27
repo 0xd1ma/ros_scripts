@@ -1,14 +1,23 @@
 #! /bin/bash
 
-echo " "
-echo "TOPCON setup"
-echo " "
+filename=starline
+if [ "$1" != "" ]; then
+    filename=$1
+fi
+echo "Filename for logging is $filename"
 
-TOPCON_NAME="/dev/ttyUSB0"
+echo "Launching roscore..."
+roscore &
+pid=$!
 
+sleep 3s
+
+TOPCON_NAME="/dev/topcon"
 stty -F $TOPCON_NAME 115200
+
 sleep 0.1
 
+echo "AGI-4 params init"
 echo -en "%%set,/par/pos/dion/mode,smooth\r" > $TOPCON_NAME
 sleep 0.05
 echo -en "%%set,/par/pos/dion/extrap,300\r" > $TOPCON_NAME
@@ -44,14 +53,59 @@ sleep 0.05
 echo -en "%%set,/par/mc/tp/save,on\r" > $TOPCON_NAME
 sleep 0.05
 echo -en "%%set,/par/mc/tp/kf/reset,on\r" > $TOPCON_NAME
-sleep 0.05
 
+sleep 3s
+
+echo "AGI-4 logging configure"
+# Disable internal logging
+echo -en "%1x12%set,/par/mc/tp/log/activate,off\r" > $TOPCON_NAME
+sleep 0.05
+# delete any previous log
+echo -en "%2%remove,$filename\r" > $TOPCON_NAME
+sleep 0.05
+# create the list of default messages
+echo -en "%3%init,/msg/\r" > $TOPCON_NAME
+sleep 0.05
+# add additional messages
+echo -en "%4%create,/msg/def/jps/SG\r" > $TOPCON_NAME
+sleep 0.05
+echo -en "%5%create,/msg/def/jps/DL\r" > $TOPCON_NAME
+sleep 0.05
+# create new log file
+echo -en "%10%create,$filename:a\r" > $TOPCON_NAME
+sleep 0.05
+# default message set at 10 Hz
+echo -en "%13%em,/cur/file/a,def:.1\r" > $TOPCON_NAME
+
+sleep 0.5
+
+# messeges
+echo "Messeges from AGI-4"
+echo "GGA 10Hz"
 echo -en "em,,nmea/GGA:0.1\r" > $TOPCON_NAME
 sleep 0.05
 
 echo "TOPCON is started"
-roslaunch ./nmea_navsat.launch
 
+sleep 3s
 
+echo "Launching nmea navsat node..."
+sleep 0.5
+roslaunch ./nmea_navsat.launch &
+pid="$pid $!"
 
+function ctrl_c() {
+echo "Killing all processes!"
+kill -15 $pid
+sleep 3s
+echo "stop recording file"
+stty -F $TOPCON_NAME 115200
+echo -en "%2%dm,/cur/file/a" > $TOPCON_NAME
+sleep 0.5
+exit
+}
 
+# trap ctrl-c and call ctrl_c()
+trap ctrl_c SIGINT SIGTERM
+
+sleep 24h
